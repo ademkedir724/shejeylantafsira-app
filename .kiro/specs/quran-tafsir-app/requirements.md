@@ -2,7 +2,7 @@
 
 ## Introduction
 
-A production-grade Qur'an mobile application (Android + iOS) built with React Native (Expo Router) that delivers page-by-page tafsir audio in Afaan Oromo by Sheikh Jeylan. The app renders Mushaf Tajweed Arabic text (color-coded, text-based, not images) and allows users to browse all 604 Qur'an pages via three interconnected navigation systems: Juz, Surah, and Page. Audio is served from pre-bundled low-quality (LQ) assets for offline-first pages and streamed in high quality (HQ) or downloaded on demand for all other pages. The app also supports a Mushaf image page layout mode (pixel-perfect scanned pages), multiple reading themes, adjustable font size, page-turn swipe gestures, full-screen reading, bookmarks, search, background audio with lock screen controls, playback speed, sleep timer, auto-advance, and advanced download management. The architecture is modular and extensible to support future features such as tafsir text, Qur'an recitation audio, and full-text search.
+A production-grade Qur'an mobile application (Android + iOS) built with React Native (Expo Router) that delivers page-by-page tafsir audio in Afaan Oromo by Sheikh Jeylan. The app binary is kept under 30MB by hosting all 604 audio files on Cloudflare R2 remote storage — only 3 sample pages (1, 2, and 604) are bundled inside the app so users can immediately hear Sheikh Jeylan's voice before downloading anything. All other pages stream from R2 by default and can be downloaded individually or by juz for offline use. The app renders Mushaf Tajweed Arabic text (color-coded, text-based, not images) and allows users to browse all 604 Qur'an pages via three interconnected navigation systems: Juz, Surah, and Page. The app also supports a Mushaf image page layout mode (pixel-perfect scanned pages), multiple reading themes, adjustable font size, page-turn swipe gestures, full-screen reading, bookmarks, search, background audio with lock screen controls, playback speed, sleep timer, auto-advance, and advanced download management. The architecture is modular and extensible to support future features such as tafsir text, Qur'an recitation audio, and full-text search.
 
 ---
 
@@ -11,10 +11,11 @@ A production-grade Qur'an mobile application (Android + iOS) built with React Na
 - **App**: The React Native / Expo Router Qur'an tafsir mobile application.
 - **Page**: A single Qur'an mushaf page, numbered 1–604.
 - **Tafsir_Audio**: An MP3 audio file containing Sheikh Jeylan's Afaan Oromo tafsir explanation for a specific Page.
-- **HQ_Audio**: High-quality MP3 stream served from a remote URL, used for online streaming.
-- **LQ_Audio**: Low-quality MP3 file used for offline playback; either pre-bundled or downloaded.
-- **Pre_Bundled_Pages**: Pages whose LQ_Audio files are shipped inside the app binary (Page 1 and Pages 582–604).
-- **Downloadable_Pages**: Pages 2–581 whose LQ_Audio files are not pre-bundled and must be downloaded on demand.
+- **HQ_Audio**: High-quality MP3 file hosted on Cloudflare R2 remote storage, used for online streaming for all non-sample pages.
+- **LQ_Audio**: Low-quality MP3 file used for offline playback; either bundled as a sample or downloaded from Cloudflare R2.
+- **Remote_Storage**: Cloudflare R2 bucket hosting all 604 LQ and HQ audio files, accessible via predictable URLs in the format `https://{bucket}/lq/{pageNumber}.mp3` and `https://{bucket}/hq/{pageNumber}.mp3`.
+- **Sample_Pages**: Pages 1, 2, and 604 whose LQ_Audio files are shipped inside the app binary (~4MB total) so users can hear the tafsir immediately after install without downloading anything.
+- **Downloadable_Pages**: All 604 pages whose LQ_Audio files can be downloaded from Remote_Storage for offline playback. Sample_Pages can also be re-downloaded if needed but are already available offline.
 - **Audio_Engine**: The module responsible for loading, playing, pausing, seeking, and releasing audio resources.
 - **Download_Manager**: The module responsible for downloading LQ_Audio files, tracking progress, and persisting download state.
 - **Page_Screen**: The primary screen that displays Mushaf Tajweed text, page metadata, and the Audio_Engine controls for a given Page.
@@ -43,7 +44,7 @@ A production-grade Qur'an mobile application (Android + iOS) built with React Na
 
 #### Acceptance Criteria
 
-1. THE App SHALL organize source code into the following top-level directories: `app/` (Expo Router screens and layouts), `src/components/` (shared UI components), `src/features/` (feature modules: audio, download, navigation, quran), `src/store/` (Zustand stores), `src/hooks/` (custom React hooks), `src/constants/` (theme, config, static data), `src/types/` (TypeScript interfaces and types), and `assets/audio/` (pre-bundled LQ audio files).
+1. THE App SHALL organize source code into the following top-level directories: `app/` (Expo Router screens and layouts), `src/components/` (shared UI components), `src/features/` (feature modules: audio, download, navigation, quran), `src/store/` (Zustand stores), `src/hooks/` (custom React hooks), `src/constants/` (theme, config, static data), `src/types/` (TypeScript interfaces and types), and `assets/audio/samples/` (3 bundled sample LQ audio files for pages 1, 2, and 604).
 2. THE App SHALL use TypeScript strict mode for all source files.
 3. THE App SHALL define path aliases (e.g., `@/`) so that imports do not use relative `../` chains longer than one level.
 4. WHEN a new feature module is added, THE App SHALL require no changes to existing feature modules to accommodate it.
@@ -167,24 +168,26 @@ A production-grade Qur'an mobile application (Android + iOS) built with React Na
 
 #### Acceptance Criteria
 
-1. WHEN the user opens a Pre_Bundled_Page (Page 1 or Pages 582–604), THE Audio_Engine SHALL load the LQ_Audio from the app's bundled assets without any network request.
-2. WHEN the user opens a Downloadable_Page that has been downloaded, THE Audio_Engine SHALL load the LQ_Audio from local storage.
-3. WHEN the user opens a Downloadable_Page that has not been downloaded, THE Audio_Engine SHALL stream the HQ_Audio from the remote URL.
-4. THE App SHALL resolve the correct audio source for a given Page in a single function call that returns either a local asset reference or a remote URL string.
-5. WHEN the remote URL for HQ_Audio is not yet configured, THE App SHALL display a "Audio coming soon" placeholder in the Audio_Engine controls instead of attempting a network request.
+1. WHEN the user opens a Sample_Page (Page 1, 2, or 604), THE Audio_Engine SHALL load the LQ_Audio from the app's bundled sample assets without any network request.
+2. WHEN the user opens any page that has been downloaded to local storage, THE Audio_Engine SHALL load the LQ_Audio from the local file system.
+3. WHEN the user opens any page that is not a Sample_Page and has not been downloaded, THE Audio_Engine SHALL stream the HQ_Audio from the Remote_Storage URL.
+4. THE App SHALL resolve the correct audio source for a given Page in a single function call (`resolveAudioSource(pageNumber)`) that returns one of: a bundled asset reference, a local file URI, or a remote HQ URL string.
+5. THE remote URL pattern SHALL be configurable in a single constants file (`src/constants/config.ts`) so that the R2 bucket URL can be updated without touching any other file.
+6. WHEN the Remote_Storage base URL is not yet configured (empty string), THE App SHALL display an "Audio coming soon" placeholder in the Audio_Engine controls instead of attempting a network request.
+7. THE App SHALL display a "Sample" badge on the audio player for Sample_Pages (1, 2, 604) to indicate these are bundled preview files.
 
 ---
 
 ### Requirement 10: Download Manager
 
-**User Story:** As a user, I want to download tafsir audio for offline pages, so that I can listen without an internet connection.
+**User Story:** As a user, I want to download tafsir audio for offline listening, so that I can use the app without an internet connection.
 
 #### Acceptance Criteria
 
-1. THE Page_Screen SHALL display a "Download for offline" button for all Downloadable_Pages (Pages 2–581) that have not yet been downloaded.
-2. WHEN the user taps "Download for offline", THE Download_Manager SHALL begin downloading the LQ_Audio file for that Page.
+1. THE Page_Screen SHALL display a "Download for offline" button for any page that has not yet been downloaded to local storage (including Sample_Pages, which are already available but can still be explicitly downloaded as LQ).
+2. WHEN the user taps "Download for offline", THE Download_Manager SHALL begin downloading the LQ_Audio file from Remote_Storage for that Page.
 3. WHILE a download is in progress, THE Page_Screen SHALL display a progress indicator showing the download percentage.
-4. WHEN a download completes successfully, THE Download_Manager SHALL save the LQ_Audio file to the device's local file system using expo-file-system.
+4. WHEN a download completes successfully, THE Download_Manager SHALL save the LQ_Audio file to the device's local file system using expo-file-system at path `{documentDirectory}/audio/lq/{pageNumber}.mp3`.
 5. WHEN a download completes successfully, THE Download_Manager SHALL record the Page number as downloaded in Storage.
 6. WHEN a download fails, THE Download_Manager SHALL display an error message and allow the user to retry.
 7. THE Download_Manager SHALL support cancelling an in-progress download.
@@ -510,7 +513,7 @@ A production-grade Qur'an mobile application (Android + iOS) built with React Na
 1. THE App SHALL support a Download_Queue that allows enqueuing multiple pages for sequential download.
 2. THE user SHALL be able to pause and resume the entire Download_Queue from the Settings screen or a dedicated Downloads screen.
 3. THE App SHALL provide a "Download entire Juz" button on the Juz list screen and Juz detail view, which enqueues all Downloadable_Pages within that Juz.
-4. THE App SHALL provide a "Download all pages" option in Settings that enqueues all 580 Downloadable_Pages (2–581).
+4. THE App SHALL provide a "Download all pages" option in Settings that enqueues all 604 pages for download (skipping any already downloaded).
 5. WHEN "Auto-download on Wi-Fi only" is enabled and the device is on a cellular network, THE Download_Manager SHALL pause all downloads and display a notice.
 6. WHEN "Auto-download on Wi-Fi only" is enabled and the device connects to Wi-Fi, THE Download_Manager SHALL automatically resume paused downloads.
 7. THE Downloads screen SHALL display: active downloads with progress bars, queued downloads count, completed downloads count, and total storage used.
