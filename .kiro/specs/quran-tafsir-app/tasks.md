@@ -80,18 +80,18 @@ Incremental implementation of a production-grade Qur'an tafsir mobile app (React
   - Call `lockScreen.ts` initializer from `app/_layout.tsx`
   - _Requirements: 24.1–24.7_
 
-- [ ] 11. Download manager
+- [~] 11. Download manager
   - Implement `src/features/download/downloadManager.ts`: `processQueue` function maintaining at most `MAX_CONCURRENT_DOWNLOADS` active `FileSystem.createDownloadResumable` instances; `startDownload` creates directory, downloads to `{documentDirectory}/audio/lq/{n}.mp3`, calls `markDownloaded` on success or `setError` on failure
   - Implement `useDownloadManager.ts` hook that calls `processQueue` reactively when queue or network state changes
   - Implement launch-time integrity check: for each page in `downloadedPages`, call `FileSystem.getInfoAsync`; call `markMissing` for any absent file
   - _Requirements: 10.2–10.10, 11.3, 11.4, 31.1, 31.2_
 
-- [ ] 12. Network state hook
+- [~] 12. Network state hook
   - Create `src/hooks/useNetworkState.ts` wrapping `@react-native-community/netinfo` to expose `{ isConnected: boolean, isWifi: boolean }`
   - Wire offline detection to pause the download queue (call `pauseQueue`) and resume it (call `resumeQueue`) automatically on connectivity change
   - _Requirements: 30.1, 30.4, 30.5, 31.5, 31.6_
 
-- [ ] 13. Expo Router navigation structure
+- [~] 13. Expo Router navigation structure
   - Replace the default Expo Router scaffold with the target structure: `app/_layout.tsx` (root stack, font loading, store hydration, lock screen init), `app/(tabs)/_layout.tsx` (5-tab bar: Home, Juz, Surah, Search, Settings), `app/(tabs)/index.tsx`, `app/(tabs)/juz.tsx`, `app/(tabs)/surah.tsx`, `app/(tabs)/search.tsx`, `app/(tabs)/settings.tsx`, `app/page/[pageNumber].tsx`, `app/bookmarks.tsx`, `app/downloads.tsx`
   - Load `KFGQPCUthmanicScript.ttf` via `expo-font` in root layout
   - Apply RTL via `I18nManager.forceRTL(true)` when `uiLanguage === 'ar'`
