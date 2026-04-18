@@ -8,7 +8,7 @@ Incremental implementation of a production-grade Qur'an tafsir mobile app (React
 
 ## Tasks
 
-- [~] 1. Project setup and folder structure
+- [x] 1. Project setup and folder structure
   - Scaffold the directory tree: `src/components/`, `src/features/{audio,download,quran,search}/`, `src/store/`, `src/hooks/`, `src/constants/i18n/`, `src/types/`, `assets/audio/samples/`, `assets/fonts/`, `assets/pages/`
   - Add `tsconfig.json` path alias `@/*` → `src/*` and update `babel.config.js` with `babel-plugin-module-resolver`
   - Install all required packages: `zustand`, `immer`, `@react-native-async-storage/async-storage`, `expo-av`, `expo-file-system`, `@react-native-community/netinfo`, `react-native-gesture-handler`, `fast-check`, `uuid`
@@ -16,7 +16,7 @@ Incremental implementation of a production-grade Qur'an tafsir mobile app (React
   - Enable TypeScript strict mode in `tsconfig.json`
   - _Requirements: 1.1, 1.2, 1.3_
 
-- [~] 2. TypeScript types and interfaces
+- [x] 2. TypeScript types and interfaces
   - Create `src/types/quran.ts`: `PageMetadata`, `SurahInfo`, `JuzInfo`, `PageData` (with optional `tafsirText`, `recitationAudioUrl`, `bookmarkId`)
   - Create `src/types/audio.ts`: `AudioSourceType`, `AudioSource`, `AudioState`
   - Create `src/types/download.ts`: `DownloadStatus`, `DownloadItem`, `DownloadState`
@@ -25,13 +25,13 @@ Incremental implementation of a production-grade Qur'an tafsir mobile app (React
   - Export all types from `src/types/index.ts`
   - _Requirements: 1.2, 13.1, 13.2_
 
-- [~] 3. Static Qur'an metadata data file
+- [ ] 3. Static Qur'an metadata data file
   - Create `src/features/quran/data/pages.ts` exporting a typed array of 604 `PageMetadata` entries (page number, juz, surah number, surah name Arabic + English, start/end ayah, `isFirstPageOfSurah`, `hasBasmala`)
   - Create `src/features/quran/metadata.ts` with: `getPageMetadata(n)` O(1) indexed lookup, `getPagesByJuz(juz)`, `getPagesBySurah(surah)`, `getAllSurahs()` (114 entries), `getAllJuz()` (30 entries), `searchSurahs(query)` (partial match Arabic + English)
   - Export from `src/features/quran/index.ts`
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6_
 
-- [~] 4. Zustand store slices
+- [ ] 4. Zustand store slices
   - [ ] 4.1 Create `src/store/audioSlice.ts` implementing `AudioSlice` with initial state and all actions: `setAudioPage`, `setPlaying`, `setPosition`, `setDuration`, `setPlaybackSpeed`, `toggleRepeat`, `setSleepTimer`, `setAudioError`, `resetAudio`
     - _Requirements: 12.1, 12.2, 12.3, 21.1_
   - [ ] 4.2 Create `src/store/downloadSlice.ts` implementing `DownloadSlice` with: `enqueueDownload`, `enqueueJuz`, `enqueueAll`, `cancelDownload`, `pauseQueue`, `resumeQueue`, `markDownloaded`, `markMissing`, `updateProgress`
@@ -45,53 +45,53 @@ Incremental implementation of a production-grade Qur'an tafsir mobile app (React
   - [ ] 4.6 Compose all slices in `src/store/index.ts` using `create` + `immer` + `persist` middleware (AsyncStorage adapter); `partialize` to persist only `preferences`, `downloadedPages`, `bookmarks`
     - _Requirements: 12.1, 12.5, 11.5_
 
-- [~] 5. AsyncStorage persistence layer
+- [ ] 5. AsyncStorage persistence layer
   - Create `src/features/download/storageKeys.ts` with all `@quran/` key constants
   - Verify the Zustand `persist` middleware correctly serializes/deserializes `downloadedPages` (Set → Array → Set) and `bookmarks` array on store rehydration
   - Add store hydration guard in root layout so screens wait for `_hasHydrated` before rendering
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
 
-- [~] 6. Remote storage config
+- [ ] 6. Remote storage config
   - Create `src/constants/config.ts` with: `R2_BASE_URL` (from `EXPO_PUBLIC_R2_BASE_URL`), `SAMPLE_PAGES`, `SamplePage` type, `buildLqUrl(n)`, `buildHqUrl(n)`, `MAX_CONCURRENT_DOWNLOADS`, `MAX_BOOKMARKS`, `LAST_READ_SAVE_DEBOUNCE_MS`, `AUTO_ADVANCE_DELAY_MS`, `FULL_SCREEN_CONTROLS_TIMEOUT_MS`
   - Add `.env.example` documenting `EXPO_PUBLIC_R2_BASE_URL`
   - _Requirements: 9.5, 9.6_
 
-- [~] 7. i18n localization system
+- [ ] 7. i18n localization system
   - Create `src/constants/i18n/en.ts` with all UI string keys (100+ keys covering all screen titles, button labels, error messages, prompts)
   - Create `src/constants/i18n/om.ts` (Afaan Oromo) and `src/constants/i18n/ar.ts` (Arabic) mirroring the same key set
   - Create `src/constants/i18n/index.ts` with `t(key, locale)` lookup function and `TranslationKey` / `Locale` types
   - _Requirements: 29.1, 29.2, 29.3, 29.4, 29.6_
 
-- [~] 8. Theme system
+- [ ] 8. Theme system
   - Create `src/constants/theme.ts` defining color palettes for all four `ReadingTheme` values (light, dark, sepia, paper), typography scale (min 20sp Arabic), and spacing constants
   - Create `src/hooks/useTheme.ts` that reads `preferences.theme` from the store and returns the active palette + typography
   - _Requirements: 14.1, 14.2, 14.3, 14.4, 16.1, 16.5, 16.6_
 
-- [~] 9. Audio engine — resolveAudioSource and expo-av integration
+- [ ] 9. Audio engine — resolveAudioSource and expo-av integration
   - Implement `resolveAudioSource(pageNumber, downloadedPages, baseUrl): AudioSource | null` in `src/features/audio/audioEngine.ts` with the three-priority logic (bundled → local → remote → null)
   - Implement `useAudioEngine.ts` hook managing `Audio.Sound` lifecycle: `loadPage`, `play`, `pause`, `seekTo`, `setSpeed`, `release`; dispatches to audio slice on every `onPlaybackStatusUpdate` callback
   - Configure `Audio.setAudioModeAsync` for silent-mode iOS playback (Req 8.10)
   - Export from `src/features/audio/index.ts`
   - _Requirements: 8.1–8.10, 9.1–9.4, 9.6, 9.7_
 
-- [~] 10. Background audio and lock screen controls
+- [ ] 10. Background audio and lock screen controls
   - Create `src/features/audio/lockScreen.ts`: call `Audio.setAudioModeAsync({ staysActiveInBackground: true, playsInSilentModeIOS: true, ... })` once at app startup
   - Register OS media session metadata (surah name + page number as track title, "Sheikh Jeylan" as artist) and wire next/previous actions to dispatch `setCurrentPage` on the navigation slice
   - Call `lockScreen.ts` initializer from `app/_layout.tsx`
   - _Requirements: 24.1–24.7_
 
-- [~] 11. Download manager
+- [ ] 11. Download manager
   - Implement `src/features/download/downloadManager.ts`: `processQueue` function maintaining at most `MAX_CONCURRENT_DOWNLOADS` active `FileSystem.createDownloadResumable` instances; `startDownload` creates directory, downloads to `{documentDirectory}/audio/lq/{n}.mp3`, calls `markDownloaded` on success or `setError` on failure
   - Implement `useDownloadManager.ts` hook that calls `processQueue` reactively when queue or network state changes
   - Implement launch-time integrity check: for each page in `downloadedPages`, call `FileSystem.getInfoAsync`; call `markMissing` for any absent file
   - _Requirements: 10.2–10.10, 11.3, 11.4, 31.1, 31.2_
 
-- [~] 12. Network state hook
+- [ ] 12. Network state hook
   - Create `src/hooks/useNetworkState.ts` wrapping `@react-native-community/netinfo` to expose `{ isConnected: boolean, isWifi: boolean }`
   - Wire offline detection to pause the download queue (call `pauseQueue`) and resume it (call `resumeQueue`) automatically on connectivity change
   - _Requirements: 30.1, 30.4, 30.5, 31.5, 31.6_
 
-- [~] 13. Expo Router navigation structure
+- [ ] 13. Expo Router navigation structure
   - Replace the default Expo Router scaffold with the target structure: `app/_layout.tsx` (root stack, font loading, store hydration, lock screen init), `app/(tabs)/_layout.tsx` (5-tab bar: Home, Juz, Surah, Search, Settings), `app/(tabs)/index.tsx`, `app/(tabs)/juz.tsx`, `app/(tabs)/surah.tsx`, `app/(tabs)/search.tsx`, `app/(tabs)/settings.tsx`, `app/page/[pageNumber].tsx`, `app/bookmarks.tsx`, `app/downloads.tsx`
   - Load `KFGQPCUthmanicScript.ttf` via `expo-font` in root layout
   - Apply RTL via `I18nManager.forceRTL(true)` when `uiLanguage === 'ar'`
