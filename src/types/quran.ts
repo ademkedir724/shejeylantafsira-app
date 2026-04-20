@@ -31,3 +31,13 @@ export interface PageData extends PageMetadata {
     recitationAudioUrl?: string;
     bookmarkId?: string | null;
 }
+
+/**
+ * Per-page layout data extracted from the Dar al-Maarifah Mushaf .docx files.
+ * Each line is a string of QPC font codepoints rendered with the page font.
+ */
+export interface PageLayout {
+    pageNumber: number;
+    lines: string[];      // QPC-encoded lines — must use page font to render
+    fontName: string;     // expo-font key, e.g. "QPC_P1"
+}
