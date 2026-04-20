@@ -22,6 +22,7 @@ export default function RootLayout() {
   // Load custom Arabic font — gracefully handles missing font file
   const [fontsLoaded] = useFonts({
     KFGQPCUthmanicScript: require('../assets/fonts/KFGQPCUthmanicScript.ttf'),
+    QPC_P1: require('../assets/fonts/p1.ttf'),
   });
 
   useEffect(() => {
