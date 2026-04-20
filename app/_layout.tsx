@@ -6,9 +6,9 @@ import { useEffect } from 'react';
 import { ActivityIndicator, I18nManager, View } from 'react-native';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { initLockScreen } from '@/features/audio/lockScreen';
 import { useStore } from '@/store/index';
-import { initLockScreen } from '../src/features/audio/lockScreen';
+import { useColorScheme } from '../hooks/use-color-scheme';
 
 export const unstable_settings = {
   anchor: '(tabs)',

@@ -1,8 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { HapticTab } from '../../components/haptic-tab';
+import { useColorScheme } from '../../hooks/use-color-scheme';
 
 const ACTIVE_COLOR_LIGHT = '#1B5E20';
 const ACTIVE_COLOR_DARK = '#81C784';
