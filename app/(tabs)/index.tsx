@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { t } from '@/constants/i18n';
 import { useTheme } from '@/hooks/useTheme';
@@ -13,19 +13,25 @@ export default function HomeScreen() {
 
   const styles = makeStyles(palette, spacing);
 
+  const goToPage = (page: number) => {
+    console.log('[HomeScreen] navigating to page', page);
+    router.push(`/page/${page}`);
+  };
+
   if (lastReadPage) {
     return (
       <View style={styles.container}>
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>{t('home_resume_prompt', uiLanguage).replace('{{page}}', String(lastReadPage))}</Text>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => router.push(`/page/${lastReadPage}`)}
+          <Text style={styles.cardTitle}>
+            {t('home_resume_prompt', uiLanguage).replace('{{page}}', String(lastReadPage))}
+          </Text>
+          <Pressable
+            style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+            onPress={() => goToPage(lastReadPage)}
             accessibilityRole="button"
-            accessibilityLabel={t('home_resume_button', uiLanguage)}
           >
             <Text style={styles.buttonText}>{t('home_resume_button', uiLanguage)}</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
     );
@@ -35,19 +41,21 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <Text style={styles.welcomeTitle}>{t('home_welcome', uiLanguage)}</Text>
       <Text style={styles.welcomeSubtitle}>{t('home_welcome_subtitle', uiLanguage)}</Text>
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => router.push('/page/1')}
+      <Pressable
+        style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+        onPress={() => goToPage(1)}
         accessibilityRole="button"
-        accessibilityLabel={t('home_start_reading', uiLanguage)}
       >
         <Text style={styles.buttonText}>{t('home_start_reading', uiLanguage)}</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 }
 
-function makeStyles(palette: ReturnType<typeof useTheme>['palette'], spacing: ReturnType<typeof useTheme>['spacing']) {
+function makeStyles(
+  palette: ReturnType<typeof useTheme>['palette'],
+  spacing: ReturnType<typeof useTheme>['spacing'],
+) {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -90,6 +98,12 @@ function makeStyles(palette: ReturnType<typeof useTheme>['palette'], spacing: Re
       paddingVertical: spacing.sm,
       paddingHorizontal: spacing.lg,
       alignItems: 'center',
+      minWidth: 160,
+      minHeight: 44,
+      justifyContent: 'center',
+    },
+    buttonPressed: {
+      opacity: 0.75,
     },
     buttonText: {
       color: '#FFFFFF',

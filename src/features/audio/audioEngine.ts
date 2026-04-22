@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { SAMPLE_PAGES, buildLqUrl } from '../../constants/config';
 import type { AudioSource } from '../../types/audio';
 

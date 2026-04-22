@@ -16,17 +16,13 @@ export function useAudioEngine() {
     const setDuration = useStore((s) => s.setDuration);
     const setAudioError = useStore((s) => s.setAudioError);
 
-    // Configure audio mode for silent-mode iOS playback on mount (Req 8.10)
     useEffect(() => {
         Audio.setAudioModeAsync({
             playsInSilentModeIOS: true,
             staysActiveInBackground: false,
-        }).catch(() => {
-            // Non-fatal — audio will still work without silent mode
-        });
+        }).catch(() => { });
 
         return () => {
-            // Release sound on unmount
             soundRef.current?.unloadAsync().catch(() => { });
             soundRef.current = null;
         };
@@ -35,18 +31,11 @@ export function useAudioEngine() {
     const onPlaybackStatusUpdate = useCallback(
         (status: AVPlaybackStatus) => {
             if (!status.isLoaded) {
-                if (status.error) {
-                    setAudioError(status.error);
-                }
+                if (status.error) setAudioError(status.error);
                 return;
             }
-
             setPosition(status.positionMillis);
-
-            if (status.durationMillis != null) {
-                setDuration(status.durationMillis);
-            }
-
+            if (status.durationMillis != null) setDuration(status.durationMillis);
             setPlaying(status.isPlaying);
         },
         [setAudioError, setPosition, setDuration, setPlaying],
@@ -55,94 +44,58 @@ export function useAudioEngine() {
     const loadPage = useCallback(
         async (pageNumber: number) => {
             try {
-                // Unload previous sound
                 if (soundRef.current) {
                     await soundRef.current.unloadAsync();
                     soundRef.current = null;
                 }
-
                 setAudioPage(pageNumber);
-
                 const source = resolveAudioSource(pageNumber, downloadedPages, R2_BASE_URL);
-
                 if (!source) {
                     setAudioError('No audio source available for this page');
                     return;
                 }
-
                 const assetSource =
                     source.type === 'bundled'
                         ? (source.uri as number)
                         : { uri: source.uri as string };
-
                 const { sound } = await Audio.Sound.createAsync(
                     assetSource,
-                    {
-                        shouldPlay: false,
-                        rate: playbackSpeed,
-                        progressUpdateIntervalMillis: 500,
-                    },
+                    { shouldPlay: false, rate: playbackSpeed, progressUpdateIntervalMillis: 500 },
                     onPlaybackStatusUpdate,
                 );
-
                 soundRef.current = sound;
             } catch (err) {
-                const message = err instanceof Error ? err.message : 'Failed to load audio';
-                setAudioError(message);
+                setAudioError(err instanceof Error ? err.message : 'Failed to load audio');
             }
         },
         [downloadedPages, playbackSpeed, setAudioPage, setAudioError, onPlaybackStatusUpdate],
     );
 
     const play = useCallback(async () => {
-        try {
-            await soundRef.current?.playAsync();
-        } catch (err) {
-            const message = err instanceof Error ? err.message : 'Playback error';
-            setAudioError(message);
-        }
+        try { await soundRef.current?.playAsync(); }
+        catch (err) { setAudioError(err instanceof Error ? err.message : 'Playback error'); }
     }, [setAudioError]);
 
     const pause = useCallback(async () => {
-        try {
-            await soundRef.current?.pauseAsync();
-        } catch (err) {
-            const message = err instanceof Error ? err.message : 'Pause error';
-            setAudioError(message);
-        }
+        try { await soundRef.current?.pauseAsync(); }
+        catch (err) { setAudioError(err instanceof Error ? err.message : 'Pause error'); }
     }, [setAudioError]);
 
-    const seekTo = useCallback(
-        async (ms: number) => {
-            try {
-                await soundRef.current?.setPositionAsync(ms);
-            } catch (err) {
-                const message = err instanceof Error ? err.message : 'Seek error';
-                setAudioError(message);
-            }
-        },
-        [setAudioError],
-    );
+    const seekTo = useCallback(async (ms: number) => {
+        try { await soundRef.current?.setPositionAsync(ms); }
+        catch (err) { setAudioError(err instanceof Error ? err.message : 'Seek error'); }
+    }, [setAudioError]);
 
-    const setSpeed = useCallback(
-        async (speed: number) => {
-            try {
-                await soundRef.current?.setRateAsync(speed, true);
-            } catch (err) {
-                const message = err instanceof Error ? err.message : 'Speed change error';
-                setAudioError(message);
-            }
-        },
-        [setAudioError],
-    );
+    const setSpeed = useCallback(async (speed: number) => {
+        try { await soundRef.current?.setRateAsync(speed, true); }
+        catch (err) { setAudioError(err instanceof Error ? err.message : 'Speed error'); }
+    }, [setAudioError]);
 
     const release = useCallback(async () => {
         try {
             await soundRef.current?.unloadAsync();
             soundRef.current = null;
-        } catch {
-            // Ignore errors on release
-        }
+        } catch { }
     }, []);
 
     return { loadPage, play, pause, seekTo, setSpeed, release };

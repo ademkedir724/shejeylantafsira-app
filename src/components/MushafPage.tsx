@@ -16,7 +16,7 @@
  *  - If download fails: falls back to p1.ttf with a warning
  */
 
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Font from 'expo-font';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
