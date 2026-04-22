@@ -237,3 +237,4 @@ function buildPagesData(): PageMetadata[] {
 }
 
 export const PAGES_DATA: PageMetadata[] = buildPagesData();
+export { SURAH_DATA };
