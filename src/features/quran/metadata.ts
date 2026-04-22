@@ -1,5 +1,5 @@
 import type { JuzInfo, PageMetadata, SurahInfo } from '@/types';
-import { PAGES_DATA } from './data/pages';
+import { PAGES_DATA, SURAH_DATA } from './data/pages';
 
 // ---------------------------------------------------------------------------
 // O(1) indexed lookup — page numbers are 1-based, array is 0-based
@@ -49,37 +49,20 @@ export function getPagesBySurah(surahNumber: number): PageMetadata[] {
 // ---------------------------------------------------------------------------
 
 /**
- * Returns a list of all 114 SurahInfo entries derived from the pages data.
- * Each entry includes the surah number, Arabic/English names, total ayahs,
- * and the starting page number.
+ * Returns a list of all 114 SurahInfo entries.
+ * Reads directly from SURAH_DATA so short surahs that share a page with
+ * another surah are never omitted (the page-walk algorithm in buildPageSurahMap
+ * only tracks one surah per page, so deriving this list from PAGES_DATA loses
+ * any surah whose startPage equals the startPage of the following surah).
  */
 export function getAllSurahs(): SurahInfo[] {
-    const seen = new Set<number>();
-    const surahs: SurahInfo[] = [];
-
-    for (const page of PAGES_DATA) {
-        if (!seen.has(page.surahNumber)) {
-            seen.add(page.surahNumber);
-
-            // Compute total ayahs: max endAyah across all pages of this surah
-            // (will be filled in after collecting all pages)
-            surahs.push({
-                surahNumber: page.surahNumber,
-                nameArabic: page.surahNameArabic,
-                nameEnglish: page.surahNameEnglish,
-                totalAyahs: 0, // placeholder
-                startPage: page.pageNumber,
-            });
-        }
-    }
-
-    // Fill in totalAyahs: the maximum endAyah across all pages of each surah
-    for (const surah of surahs) {
-        const pages = PAGES_DATA.filter(p => p.surahNumber === surah.surahNumber);
-        surah.totalAyahs = Math.max(...pages.map(p => p.endAyah));
-    }
-
-    return surahs.sort((a, b) => a.surahNumber - b.surahNumber);
+    return SURAH_DATA.map(s => ({
+        surahNumber: s.number,
+        nameArabic: s.nameArabic,
+        nameEnglish: s.nameEnglish,
+        totalAyahs: s.totalAyahs,
+        startPage: s.startPage,
+    })).sort((a, b) => a.surahNumber - b.surahNumber);
 }
 
 // ---------------------------------------------------------------------------

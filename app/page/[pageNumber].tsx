@@ -126,6 +126,11 @@ export default function PageScreen() {
         router.push('/page-browser');
     }, [router]);
 
+    // Home button → go to home tab
+    const handleHome = useCallback(() => {
+        router.push('/');
+    }, [router]);
+
     const panGesture = Gesture.Pan()
         .activeOffsetX([-20, 20])
         .onEnd((event) => {
@@ -234,6 +239,15 @@ export default function PageScreen() {
                                 hitSlop={8}
                             >
                                 <Ionicons name="arrow-back" size={22} color={palette.text} />
+                            </Pressable>
+                            <Pressable
+                                style={styles.iconButton}
+                                onPress={handleHome}
+                                accessibilityRole="button"
+                                accessibilityLabel="Go to home"
+                                hitSlop={8}
+                            >
+                                <Ionicons name="home-outline" size={22} color={palette.text} />
                             </Pressable>
                             <Text style={styles.headerTitle}>Page {pageNumber}</Text>
                         </View>
