@@ -9,6 +9,7 @@ export interface AudioSlice {
     setPlaying: (isPlaying: boolean) => void;
     setPosition: (positionMs: number) => void;
     setDuration: (durationMs: number) => void;
+    setLoading: (isLoading: boolean) => void;
     setPlaybackSpeed: (speed: PlaybackSpeed) => void;
     toggleRepeat: () => void;
     setSleepTimer: (ms: number | null) => void;
@@ -67,6 +68,11 @@ export const createAudioSlice: StateCreator<
         set((state) => {
             state.audio.durationMs = durationMs;
             state.audio.isLoading = false;
+        }),
+
+    setLoading: (isLoading) =>
+        set((state) => {
+            state.audio.isLoading = isLoading;
         }),
 
     setPlaybackSpeed: (speed) =>

@@ -28,10 +28,25 @@ export function useAudioEngine() {
     }, [status.currentTime, setPosition]);
 
     useEffect(() => {
-        if (status.duration > 0) {
+        if (status.duration > 0 && isFinite(status.duration)) {
             setDuration(status.duration * 1000);
         }
     }, [status.duration, setDuration]);
+
+    // Clear loading state as soon as the player reports it's loaded,
+    // even if duration hasn't been reported yet (handles bundled assets on device)
+    useEffect(() => {
+        if (status.isLoaded) {
+            // If duration is already known, set it; otherwise just clear loading
+            const dur = status.duration;
+            if (dur > 0 && isFinite(dur)) {
+                setDuration(dur * 1000);
+            } else {
+                // Clear loading without overwriting duration
+                setDuration(0);
+            }
+        }
+    }, [status.isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const loadPage = useCallback(
         async (pageNumber: number) => {
@@ -46,10 +61,15 @@ export function useAudioEngine() {
                 }
                 setAudioSource(source);
 
-                const audioSource: ExpoAudioSource =
-                    source.type === 'bundled'
-                        ? (source.uri as number)
-                        : { uri: source.uri as string };
+                // expo-audio accepts a number (require asset) or { uri: string }
+                // For bundled assets the require() returns a number on native
+                let audioSource: ExpoAudioSource;
+                if (source.type === 'bundled') {
+                    // Pass the numeric asset ID directly — expo-audio resolves it natively
+                    audioSource = source.uri as number;
+                } else {
+                    audioSource = { uri: source.uri as string };
+                }
 
                 player.replace(audioSource);
                 player.setPlaybackRate(playbackSpeed);
