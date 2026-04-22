@@ -41,7 +41,8 @@ export default function AudioPlayer({ pageNumber, onNavigateNext }: AudioPlayerP
     const hasAdvanced = useRef(false);
 
     const isSample = (SAMPLE_PAGES as readonly number[]).includes(pageNumber);
-    const noSource = audio.source === null && !audio.isLoading;
+    // Show "coming soon" only when audio failed to load (no source and not loading)
+    const noSource = !audio.isLoading && audio.source === null && audio.error !== null;
 
     // Auto-advance logic
     useEffect(() => {

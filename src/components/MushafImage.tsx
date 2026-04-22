@@ -1,49 +1,66 @@
-import React, { useEffect } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+/**
+ * MushafImage.tsx
+ *
+ * Displays a Quran page as a scanned image from assets/quran-image/.
+ *
+ * Images are bundled as static require() calls — Metro requires this.
+ * Add images to assets/quran-image/ named 1.png through 604.png,
+ * then run the generate script to populate BUNDLED_PAGE_IMAGES below.
+ *
+ * Until images are added, a placeholder is shown.
+ */
 
-// TODO: Dynamic image loading requires a native module or bundled assets
-// Since require() must be static, only pre-bundled pages can be loaded.
-// Currently no page images are bundled in assets/pages/, so onFallback()
-// is called immediately for all pages. When images are added, build a
-// static map here (e.g. { 1: require('../../../assets/pages/1.png'), ... }).
+import { Image } from 'expo-image';
+import React from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useTheme } from '../hooks/useTheme';
 
-const BUNDLED_PAGE_IMAGES: Record<number, number> = {
-    // Example (uncomment when images are added to assets/pages/):
-    // 1: require('../../../assets/pages/1.png'),
-    // 2: require('../../../assets/pages/2.png'),
-    // 3: require('../../../assets/pages/3.png'),
+// ─── Static image map ────────────────────────────────────────────────────────
+// Populated once you add images to assets/quran-image/
+// Each entry: pageNumber → require('../../../assets/quran-image/{n}.png')
+
+const BUNDLED_PAGE_IMAGES: Record<number, ReturnType<typeof require>> = {
+    // Images will be added here after you provide the quran-image folder
 };
+
+// ─── Props ───────────────────────────────────────────────────────────────────
 
 export interface MushafImageProps {
     pageNumber: number;
-    onFallback: () => void;
 }
 
-export function MushafImage({ pageNumber, onFallback }: MushafImageProps) {
+// ─── Component ───────────────────────────────────────────────────────────────
+
+export function MushafImage({ pageNumber }: MushafImageProps) {
+    const { palette } = useTheme();
     const source = BUNDLED_PAGE_IMAGES[pageNumber];
 
-    useEffect(() => {
-        if (!source) {
-            onFallback();
-        }
-    }, [pageNumber, source, onFallback]);
-
     if (!source) {
-        return null;
+        // Placeholder shown until images are bundled
+        return (
+            <View style={[styles.placeholder, { backgroundColor: palette.background }]}>
+                <ActivityIndicator size="large" color={palette.primary} />
+                <Text style={[styles.placeholderText, { color: palette.textSecondary }]}>
+                    Page {pageNumber}
+                </Text>
+            </View>
+        );
     }
 
     return (
         <View style={styles.container}>
             <Image
                 source={source}
-                resizeMode="contain"
+                contentFit="contain"
                 style={styles.image}
-                onError={onFallback}
                 accessibilityLabel={`Mushaf page ${pageNumber}`}
+                transition={150}
             />
         </View>
     );
 }
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
     container: {
@@ -52,5 +69,14 @@ const styles = StyleSheet.create({
     image: {
         flex: 1,
         width: '100%',
+    },
+    placeholder: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 12,
+    },
+    placeholderText: {
+        fontSize: 14,
     },
 });
