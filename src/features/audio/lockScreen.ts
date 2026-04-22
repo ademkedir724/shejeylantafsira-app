@@ -1,29 +1,23 @@
-import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from 'expo-av';
+import { setAudioModeAsync } from 'expo-audio';
 
 /**
- * Call once at app startup (from app/_layout.tsx) to enable background audio
- * and silent-mode playback on iOS.
+ * Call once at app startup to enable background audio and silent-mode playback.
  */
 export async function initLockScreen(): Promise<void> {
-    await Audio.setAudioModeAsync({
-        staysActiveInBackground: true,
-        playsInSilentModeIOS: true,
-        interruptionModeIOS: InterruptionModeIOS.DoNotMix,
-        shouldDuckAndroid: true,
-        interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
-        playThroughEarpieceAndroid: false,
+    await setAudioModeAsync({
+        playsInSilentMode: true,
+        shouldPlayInBackground: true,
+        interruptionMode: 'doNotMix',
     });
 }
 
-export function updateNowPlaying(surahName: string, pageNumber: number): void {
-    void surahName;
-    void pageNumber;
+export function updateNowPlaying(_surahName: string, _pageNumber: number): void {
+    // Future: update lock screen metadata
 }
 
 export function registerMediaSessionHandlers(
-    onNext: () => void,
-    onPrevious: () => void,
+    _onNext: () => void,
+    _onPrevious: () => void,
 ): void {
-    void onNext;
-    void onPrevious;
+    // Future: register media session handlers
 }

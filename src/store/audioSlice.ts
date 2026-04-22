@@ -1,10 +1,11 @@
 import type { StateCreator } from 'zustand';
-import type { AudioState } from '../types/audio';
+import type { AudioSource, AudioState } from '../types/audio';
 import type { PlaybackSpeed } from '../types/preferences';
 
 export interface AudioSlice {
     audio: AudioState;
     setAudioPage: (pageNumber: number) => void;
+    setAudioSource: (source: AudioSource | null) => void;
     setPlaying: (isPlaying: boolean) => void;
     setPosition: (positionMs: number) => void;
     setDuration: (durationMs: number) => void;
@@ -45,6 +46,11 @@ export const createAudioSlice: StateCreator<
             state.audio.durationMs = 0;
             state.audio.source = null;
             state.audio.error = null;
+        }),
+
+    setAudioSource: (source) =>
+        set((state) => {
+            state.audio.source = source;
         }),
 
     setPlaying: (isPlaying) =>

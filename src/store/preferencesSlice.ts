@@ -4,8 +4,6 @@ import type { PlaybackSpeed, ReadingTheme, UILanguage, UserPreferences } from '.
 export interface PreferencesSlice {
     preferences: UserPreferences;
     setTheme: (theme: ReadingTheme) => void;
-    setFontSize: (size: number) => void;
-    setMushafImageMode: (enabled: boolean) => void;
     setAutoAdvance: (enabled: boolean) => void;
     setPlaybackSpeed: (speed: PlaybackSpeed) => void;
     setUILanguage: (lang: UILanguage) => void;
@@ -15,8 +13,6 @@ export interface PreferencesSlice {
 
 const defaultPreferences: UserPreferences = {
     theme: 'light',
-    fontSize: 22,
-    mushafImageMode: false,
     autoAdvance: false,
     playbackSpeed: 1.0,
     uiLanguage: 'om',
@@ -35,16 +31,6 @@ export const createPreferencesSlice: StateCreator<
     setTheme: (theme) =>
         set((state) => {
             state.preferences.theme = theme;
-        }),
-
-    setFontSize: (size) =>
-        set((state) => {
-            state.preferences.fontSize = size;
-        }),
-
-    setMushafImageMode: (enabled) =>
-        set((state) => {
-            state.preferences.mushafImageMode = enabled;
         }),
 
     setAutoAdvance: (enabled) =>

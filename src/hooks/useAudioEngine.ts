@@ -1,102 +1,100 @@
-import { Audio, type AVPlaybackStatus } from 'expo-av';
-import { useCallback, useEffect, useRef } from 'react';
+import { useAudioPlayer, useAudioPlayerStatus, type AudioSource as ExpoAudioSource } from 'expo-audio';
+import { useCallback, useEffect } from 'react';
 import { R2_BASE_URL } from '../constants/config';
 import { resolveAudioSource } from '../features/audio/audioEngine';
 import useStore from '../store';
 
 export function useAudioEngine() {
-    const soundRef = useRef<Audio.Sound | null>(null);
+    const player = useAudioPlayer();
+    const status = useAudioPlayerStatus(player);
 
     const downloadedPages = useStore((s) => s.downloadedPages);
     const playbackSpeed = useStore((s) => s.audio.playbackSpeed);
 
     const setAudioPage = useStore((s) => s.setAudioPage);
+    const setAudioSource = useStore((s) => s.setAudioSource);
     const setPlaying = useStore((s) => s.setPlaying);
     const setPosition = useStore((s) => s.setPosition);
     const setDuration = useStore((s) => s.setDuration);
     const setAudioError = useStore((s) => s.setAudioError);
 
+    // Sync player status → store (expo-audio uses seconds, store uses ms)
     useEffect(() => {
-        Audio.setAudioModeAsync({
-            playsInSilentModeIOS: true,
-            staysActiveInBackground: false,
-        }).catch(() => { });
+        setPlaying(status.playing);
+    }, [status.playing, setPlaying]);
 
-        return () => {
-            soundRef.current?.unloadAsync().catch(() => { });
-            soundRef.current = null;
-        };
-    }, []);
+    useEffect(() => {
+        setPosition(status.currentTime * 1000);
+    }, [status.currentTime, setPosition]);
 
-    const onPlaybackStatusUpdate = useCallback(
-        (status: AVPlaybackStatus) => {
-            if (!status.isLoaded) {
-                if (status.error) setAudioError(status.error);
-                return;
-            }
-            setPosition(status.positionMillis);
-            if (status.durationMillis != null) setDuration(status.durationMillis);
-            setPlaying(status.isPlaying);
-        },
-        [setAudioError, setPosition, setDuration, setPlaying],
-    );
+    useEffect(() => {
+        if (status.duration > 0) {
+            setDuration(status.duration * 1000);
+        }
+    }, [status.duration, setDuration]);
 
     const loadPage = useCallback(
         async (pageNumber: number) => {
             try {
-                if (soundRef.current) {
-                    await soundRef.current.unloadAsync();
-                    soundRef.current = null;
-                }
+                player.pause();
                 setAudioPage(pageNumber);
+
                 const source = resolveAudioSource(pageNumber, downloadedPages, R2_BASE_URL);
                 if (!source) {
                     setAudioError('No audio source available for this page');
                     return;
                 }
-                const assetSource =
+                setAudioSource(source);
+
+                const audioSource: ExpoAudioSource =
                     source.type === 'bundled'
                         ? (source.uri as number)
                         : { uri: source.uri as string };
-                const { sound } = await Audio.Sound.createAsync(
-                    assetSource,
-                    { shouldPlay: false, rate: playbackSpeed, progressUpdateIntervalMillis: 500 },
-                    onPlaybackStatusUpdate,
-                );
-                soundRef.current = sound;
+
+                player.replace(audioSource);
+                player.setPlaybackRate(playbackSpeed);
             } catch (err) {
                 setAudioError(err instanceof Error ? err.message : 'Failed to load audio');
             }
         },
-        [downloadedPages, playbackSpeed, setAudioPage, setAudioError, onPlaybackStatusUpdate],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [downloadedPages, playbackSpeed, player],
     );
 
-    const play = useCallback(async () => {
-        try { await soundRef.current?.playAsync(); }
+    const play = useCallback(() => {
+        try { player.play(); }
         catch (err) { setAudioError(err instanceof Error ? err.message : 'Playback error'); }
-    }, [setAudioError]);
+    }, [player, setAudioError]);
 
-    const pause = useCallback(async () => {
-        try { await soundRef.current?.pauseAsync(); }
+    const pause = useCallback(() => {
+        try { player.pause(); }
         catch (err) { setAudioError(err instanceof Error ? err.message : 'Pause error'); }
-    }, [setAudioError]);
+    }, [player, setAudioError]);
 
-    const seekTo = useCallback(async (ms: number) => {
-        try { await soundRef.current?.setPositionAsync(ms); }
-        catch (err) { setAudioError(err instanceof Error ? err.message : 'Seek error'); }
-    }, [setAudioError]);
+    const seekTo = useCallback(
+        (ms: number) => {
+            try { player.seekTo(ms / 1000); } // expo-audio uses seconds
+            catch (err) { setAudioError(err instanceof Error ? err.message : 'Seek error'); }
+        },
+        [player, setAudioError],
+    );
 
-    const setSpeed = useCallback(async (speed: number) => {
-        try { await soundRef.current?.setRateAsync(speed, true); }
-        catch (err) { setAudioError(err instanceof Error ? err.message : 'Speed error'); }
-    }, [setAudioError]);
+    const setSpeed = useCallback(
+        (speed: number) => {
+            try { player.setPlaybackRate(speed); }
+            catch (err) { setAudioError(err instanceof Error ? err.message : 'Speed error'); }
+        },
+        [player, setAudioError],
+    );
 
-    const release = useCallback(async () => {
+    const release = useCallback(() => {
         try {
-            await soundRef.current?.unloadAsync();
-            soundRef.current = null;
-        } catch { }
-    }, []);
+            player.pause();
+            player.remove();
+        } catch {
+            // Ignore cleanup errors
+        }
+    }, [player]);
 
     return { loadPage, play, pause, seekTo, setSpeed, release };
 }
