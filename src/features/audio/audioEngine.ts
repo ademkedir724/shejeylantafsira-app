@@ -6,7 +6,7 @@ import type { AudioSource } from '../../types/audio';
 const BUNDLED_ASSETS: Record<number, number> = {
     1: require('../../../assets/audio/samples/1.mp3'),
     2: require('../../../assets/audio/samples/2.mp3'),
-    3: require('../../../assets/audio/samples/3.mp3'),
+    604: require('../../../assets/audio/samples/3.mp3'),
 };
 
 /**

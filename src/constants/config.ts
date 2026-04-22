@@ -1,7 +1,7 @@
 // Single source of truth for R2 configuration (Req 9.5)
 export const R2_BASE_URL = process.env.EXPO_PUBLIC_R2_BASE_URL ?? '';
 
-export const SAMPLE_PAGES = [1, 2, 3] as const;
+export const SAMPLE_PAGES = [1, 2, 604] as const;
 export type SamplePage = (typeof SAMPLE_PAGES)[number];
 
 export function buildLqUrl(pageNumber: number): string {
