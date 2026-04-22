@@ -1,3 +1,4 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -9,14 +10,30 @@ export default function HomeScreen() {
   const router = useRouter();
   const { palette, spacing } = useTheme();
   const lastReadPage = useStore((s) => s.preferences.lastReadPage);
+  const bookmarkCount = useStore((s) => s.bookmarks.length);
   const uiLanguage = useStore((s) => s.preferences.uiLanguage);
 
   const styles = makeStyles(palette, spacing);
 
   const goToPage = (page: number) => {
-    console.log('[HomeScreen] navigating to page', page);
     router.push(`/page/${page}`);
   };
+
+  const bookmarksRow = (
+    <Pressable
+      style={({ pressed }) => [styles.bookmarksBtn, pressed && styles.buttonPressed]}
+      onPress={() => router.push('/bookmarks')}
+      accessibilityRole="button"
+      accessibilityLabel="View bookmarks"
+    >
+      <Ionicons name="bookmark" size={18} color={palette.primary} />
+      <Text style={styles.bookmarksBtnText}>
+        {t('bookmarks_title', uiLanguage)}
+        {bookmarkCount > 0 ? `  (${bookmarkCount})` : ''}
+      </Text>
+      <Ionicons name="chevron-forward" size={16} color={palette.textSecondary} />
+    </Pressable>
+  );
 
   if (lastReadPage) {
     return (
@@ -33,6 +50,7 @@ export default function HomeScreen() {
             <Text style={styles.buttonText}>{t('home_resume_button', uiLanguage)}</Text>
           </Pressable>
         </View>
+        {bookmarksRow}
       </View>
     );
   }
@@ -48,6 +66,7 @@ export default function HomeScreen() {
       >
         <Text style={styles.buttonText}>{t('home_start_reading', uiLanguage)}</Text>
       </Pressable>
+      {bookmarksRow}
     </View>
   );
 }
@@ -109,6 +128,27 @@ function makeStyles(
       color: '#FFFFFF',
       fontSize: 16,
       fontWeight: '600',
+    },
+    bookmarksBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      marginTop: spacing.lg,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: palette.border,
+      backgroundColor: palette.surface,
+      minWidth: 200,
+      justifyContent: 'center',
+    },
+    bookmarksBtnText: {
+      fontSize: 15,
+      color: palette.primary,
+      fontWeight: '600',
+      flex: 1,
+      textAlign: 'center',
     },
   });
 }

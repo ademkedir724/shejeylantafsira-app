@@ -238,6 +238,19 @@ export default function SettingsScreen() {
                     </View>
                 </View>
 
+                {/* Bookmarks */}
+                <View style={s.card}>
+                    <Text style={s.sectionTitle}>{t('bookmarks_title', locale)}</Text>
+                    <Pressable
+                        style={s.manageBtn}
+                        onPress={() => router.push('/bookmarks')}
+                        accessibilityRole="button"
+                        accessibilityLabel="View bookmarks"
+                    >
+                        <Text style={s.manageBtnText}>{t('bookmarks_title', locale)}</Text>
+                    </Pressable>
+                </View>
+
                 {/* Storage */}
                 <View style={s.card}>
                     <Text style={s.sectionTitle}>{t('settings_storage', locale)}</Text>
