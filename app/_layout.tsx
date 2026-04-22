@@ -41,7 +41,6 @@ export default function RootLayout() {
           <Stack.Screen name="bookmarks" options={{ title: 'Bookmarks', headerBackTitle: 'Back' }} />
           <Stack.Screen name="downloads" options={{ title: 'Downloads', headerBackTitle: 'Back' }} />
           <Stack.Screen name="page-browser" options={{ presentation: 'modal', title: 'Go to Page' }} />
-          <Stack.Screen name="_debug" options={{ title: 'Debug' }} />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>
