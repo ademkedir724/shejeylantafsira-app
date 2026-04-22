@@ -32,8 +32,6 @@ export default function SettingsScreen() {
     const markMissing = useStore((s) => s.markMissing);
 
     const setTheme = useStore((s) => s.setTheme);
-    const setFontSize = useStore((s) => s.setFontSize);
-    const setMushafImageMode = useStore((s) => s.setMushafImageMode);
     const setAutoAdvance = useStore((s) => s.setAutoAdvance);
     const setPlaybackSpeed = useStore((s) => s.setPlaybackSpeed);
     const setUILanguage = useStore((s) => s.setUILanguage);
@@ -43,16 +41,6 @@ export default function SettingsScreen() {
     const pageCount = downloadedPages.size;
     const estimatedMB = pageCount; // ~1 MB per page
     const appVersion = Constants.expoConfig?.version ?? '1.0.0';
-
-    function handleFontSizeDecrease() {
-        const next = preferences.fontSize - 2;
-        if (next >= 16) setFontSize(next);
-    }
-
-    function handleFontSizeIncrease() {
-        const next = preferences.fontSize + 2;
-        if (next <= 36) setFontSize(next);
-    }
 
     function handleClearDownloads() {
         Alert.alert(
@@ -175,51 +163,47 @@ export default function SettingsScreen() {
             textAlign: 'center',
         },
         divider: {
-            height: 1,
-            backgroundColor: palette.border,
-            marginVertical: spacing.sm,
-        },
-        storageInfo: {
-            fontSize: 15,
-            color: palette.text,
-            marginBottom: spacing.xs,
-        },
-        manageBtn: {
-            marginTop: spacing.sm,
-            paddingVertical: spacing.sm,
-            paddingHorizontal: spacing.md,
-            borderRadius: 8,
-            borderWidth: 1,
-            borderColor: palette.primary,
-            alignItems: 'center',
-        },
-        manageBtnText: {
-            color: palette.primary,
-            fontSize: 15,
-            fontWeight: '600',
-        },
-        clearBtn: {
-            marginTop: spacing.sm,
-            paddingVertical: spacing.sm,
-            paddingHorizontal: spacing.md,
-            borderRadius: 8,
-            borderWidth: 1,
-            borderColor: '#D32F2F',
-            alignItems: 'center',
-        },
-        clearBtnText: {
-            color: '#D32F2F',
-            fontSize: 15,
-            fontWeight: '600',
-        },
-        versionText: {
-            fontSize: 14,
-            color: palette.textSecondary,
-            textAlign: 'center',
-            marginTop: spacing.sm,
-            marginBottom: spacing.lg,
-        },
-    });
+            storageInfo: {
+                fontSize: 15,
+                color: palette.text,
+                marginBottom: spacing.xs,
+            },
+            manageBtn: {
+                marginTop: spacing.sm,
+                paddingVertical: spacing.sm,
+                paddingHorizontal: spacing.md,
+                borderRadius: 8,
+                borderWidth: 1,
+                borderColor: palette.primary,
+                alignItems: 'center',
+            },
+            manageBtnText: {
+                color: palette.primary,
+                fontSize: 15,
+                fontWeight: '600',
+            },
+            clearBtn: {
+                marginTop: spacing.sm,
+                paddingVertical: spacing.sm,
+                paddingHorizontal: spacing.md,
+                borderRadius: 8,
+                borderWidth: 1,
+                borderColor: '#D32F2F',
+                alignItems: 'center',
+            },
+            clearBtnText: {
+                color: '#D32F2F',
+                fontSize: 15,
+                fontWeight: '600',
+            },
+            versionText: {
+                fontSize: 14,
+                color: palette.textSecondary,
+                textAlign: 'center',
+                marginTop: spacing.sm,
+                marginBottom: spacing.lg,
+            },
+        });
 
     return (
         <View style={s.container}>
@@ -248,51 +232,9 @@ export default function SettingsScreen() {
                     </View>
                 </View>
 
-                {/* Font Size */}
-                <View style={s.card}>
-                    <Text style={s.sectionTitle}>{t('settings_font_size', locale)}</Text>
-                    <View style={s.fontSizeRow}>
-                        <Pressable
-                            style={[s.fontSizeBtn, preferences.fontSize <= 16 && s.fontSizeBtnDisabled]}
-                            onPress={handleFontSizeDecrease}
-                            disabled={preferences.fontSize <= 16}
-                            accessibilityLabel="Decrease font size"
-                        >
-                            <Text style={s.fontSizeBtnText}>−</Text>
-                        </Pressable>
-                        <Text style={s.fontSizeValue}>
-                            {t('settings_font_size_value', locale).replace('{{size}}', String(preferences.fontSize))}
-                        </Text>
-                        <Pressable
-                            style={[s.fontSizeBtn, preferences.fontSize >= 36 && s.fontSizeBtnDisabled]}
-                            onPress={handleFontSizeIncrease}
-                            disabled={preferences.fontSize >= 36}
-                            accessibilityLabel="Increase font size"
-                        >
-                            <Text style={s.fontSizeBtnText}>+</Text>
-                        </Pressable>
-                    </View>
-                </View>
-
                 {/* Reading Options */}
                 <View style={s.card}>
                     <Text style={s.sectionTitle}>Reading</Text>
-
-                    {/* Mushaf Image Mode */}
-                    <View style={s.row}>
-                        <View style={s.rowLabelBlock}>
-                            <Text style={s.rowLabel}>{t('settings_image_mode', locale)}</Text>
-                            <Text style={s.rowHint}>{t('settings_image_mode_hint', locale)}</Text>
-                        </View>
-                        <Switch
-                            value={preferences.mushafImageMode}
-                            onValueChange={setMushafImageMode}
-                            trackColor={{ true: palette.primary }}
-                            thumbColor="#FFFFFF"
-                        />
-                    </View>
-
-                    <View style={s.divider} />
 
                     {/* Auto-Advance */}
                     <View style={s.row}>

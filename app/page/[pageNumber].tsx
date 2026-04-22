@@ -2,7 +2,6 @@ import AudioPlayer from '@/components/AudioPlayer';
 import { BookmarkModal } from '@/components/BookmarkModal';
 import { DownloadButton } from '@/components/DownloadButton';
 import { MushafImage } from '@/components/MushafImage';
-import { MushafText } from '@/components/MushafText';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { PageHeader } from '@/components/PageHeader';
 import { FULL_SCREEN_CONTROLS_TIMEOUT_MS, LAST_READ_SAVE_DEBOUNCE_MS } from '@/constants/config';
@@ -13,7 +12,7 @@ import { useStore } from '@/store/index';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
@@ -26,10 +25,6 @@ export default function PageScreen() {
 
     // Store selectors
     const locale = useStore((s) => s.preferences.uiLanguage);
-    const fontSize = useStore((s) => s.preferences.fontSize);
-    const theme = useStore((s) => s.preferences.theme);
-    const mushafImageMode = useStore((s) => s.preferences.mushafImageMode);
-    const setMushafImageMode = useStore((s) => s.setMushafImageMode);
     const setCurrentPage = useStore((s) => s.setCurrentPage);
     const setLastReadPage = useStore((s) => s.setLastReadPage);
     const isPageLocked = useStore((s) => s.isPageLocked);
@@ -38,19 +33,12 @@ export default function PageScreen() {
     const toggleFullScreen = useStore((s) => s.toggleFullScreen);
     const isBookmarked = useStore((s) => s.isBookmarked(pageNumber));
 
-    // Local fallback state: if image mode is on but image unavailable, fall back to text
-    const [imageFailed, setImageFailed] = useState(false);
-
     // Bookmark modal state
     const [showBookmarkModal, setShowBookmarkModal] = useState(false);
 
     // Full-screen controls visibility
     const [showControls, setShowControls] = useState(true);
     const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    const handleImageFallback = useCallback(() => {
-        setImageFailed(true);
-    }, []);
 
     // Reset showControls to true when exiting full-screen
     useEffect(() => {
@@ -85,18 +73,13 @@ export default function PageScreen() {
 
     const { loadPage, pause, release } = useAudioEngine();
 
-    // Reset image fallback state when page changes
-    useEffect(() => {
-        setImageFailed(false);
-    }, [pageNumber]);
-
     // Debounce ref for setLastReadPage
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         // Stop audio from previous page
-        pause().catch(() => { });
-        release().catch(() => { });
+        pause();
+        release();
 
         // Update navigation state
         setCurrentPage(pageNumber);
@@ -119,7 +102,6 @@ export default function PageScreen() {
         };
     }, [pageNumber]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Get page metadata (safe — pageNumber is clamped to [1, 604])
     const previousLabel = t('page_previous', locale);
     const nextLabel = t('page_next', locale);
 
@@ -127,20 +109,6 @@ export default function PageScreen() {
         container: {
             flex: 1,
             backgroundColor: palette.background,
-        },
-        toggleRow: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: spacing.md,
-            paddingVertical: spacing.sm,
-            borderBottomWidth: StyleSheet.hairlineWidth,
-            borderBottomColor: palette.border,
-            backgroundColor: palette.surface,
-        },
-        toggleLabel: {
-            fontSize: 14,
-            color: palette.text,
         },
         pageContent: {
             flex: 1,
@@ -175,8 +143,6 @@ export default function PageScreen() {
 
     const isPrevDisabled = pageNumber <= 1 || isPageLocked;
     const isNextDisabled = pageNumber >= 604 || isPageLocked;
-
-    const showImageMode = mushafImageMode && !imageFailed;
     const showChrome = !isFullScreen || showControls;
 
     // Swipe gesture
@@ -231,36 +197,11 @@ export default function PageScreen() {
                 onClose={() => setShowBookmarkModal(false)}
             />
 
-            {/* Image / Text mode toggle bar */}
-            {showChrome && (
-                <View style={StyleSheet.flatten([styles.toggleRow])}>
-                    <Text style={styles.toggleLabel}>
-                        {t('settings_image_mode', locale)}
-                    </Text>
-                    <Switch
-                        value={mushafImageMode}
-                        onValueChange={setMushafImageMode}
-                        accessibilityLabel={t('settings_image_mode', locale)}
-                    />
-                </View>
-            )}
-
-            {/* Page content */}
+            {/* Page content — image only */}
             <GestureDetector gesture={panGesture}>
                 <Animated.View style={[styles.pageContent, animatedStyle]}>
                     <Pressable style={styles.pageContent} onPress={handlePageContentPress}>
-                        {showImageMode ? (
-                            <MushafImage
-                                pageNumber={pageNumber}
-                                onFallback={handleImageFallback}
-                            />
-                        ) : (
-                            <MushafText
-                                pageNumber={pageNumber}
-                                fontSize={fontSize}
-                                theme={theme}
-                            />
-                        )}
+                        <MushafImage pageNumber={pageNumber} />
                     </Pressable>
                 </Animated.View>
             </GestureDetector>

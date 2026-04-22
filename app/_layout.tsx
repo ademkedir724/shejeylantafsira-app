@@ -1,9 +1,8 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { ActivityIndicator, I18nManager, View } from 'react-native';
+import { I18nManager } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 
@@ -19,10 +18,6 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const uiLanguage = useStore((s) => s.preferences.uiLanguage);
 
-  const [fontsLoaded, fontError] = useFonts({
-    QPC_P1: require('../assets/fonts/p1.ttf'),
-  });
-
   useEffect(() => {
     initLockScreen().catch(() => { });
   }, []);
@@ -30,14 +25,6 @@ export default function RootLayout() {
   useEffect(() => {
     I18nManager.forceRTL(uiLanguage === 'ar');
   }, [uiLanguage]);
-
-  if (!fontsLoaded && !fontError) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-        <ActivityIndicator size="large" color="#2e7d32" />
-      </View>
-    );
-  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
