@@ -11,18 +11,18 @@ const PLAYBACK_SPEEDS: PlaybackSpeed[] = [0.75, 1.0, 1.25, 1.5, 2.0];
 const THEMES: ReadingTheme[] = ['light', 'dark', 'sepia', 'paper'];
 const LANGUAGES: UILanguage[] = ['om', 'en', 'ar'];
 
-const THEME_LABEL_KEYS = {
+const THEME_LABELS: Record<ReadingTheme, string> = {
     light: 'settings_theme_light',
     dark: 'settings_theme_dark',
     sepia: 'settings_theme_sepia',
     paper: 'settings_theme_paper',
-} as const;
+};
 
-const LANG_LABEL_KEYS = {
+const LANG_LABELS: Record<UILanguage, string> = {
     om: 'settings_language_om',
     en: 'settings_language_en',
     ar: 'settings_language_ar',
-} as const;
+};
 
 export default function SettingsScreen() {
     const router = useRouter();
@@ -30,7 +30,6 @@ export default function SettingsScreen() {
     const preferences = useStore((s) => s.preferences);
     const downloadedPages = useStore((s) => s.downloadedPages);
     const markMissing = useStore((s) => s.markMissing);
-
     const setTheme = useStore((s) => s.setTheme);
     const setAutoAdvance = useStore((s) => s.setAutoAdvance);
     const setPlaybackSpeed = useStore((s) => s.setPlaybackSpeed);
@@ -39,7 +38,6 @@ export default function SettingsScreen() {
 
     const locale = preferences.uiLanguage;
     const pageCount = downloadedPages.size;
-    const estimatedMB = pageCount; // ~1 MB per page
     const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
     function handleClearDownloads() {
@@ -51,22 +49,15 @@ export default function SettingsScreen() {
                 {
                     text: t('settings_clear_downloads_button', locale),
                     style: 'destructive',
-                    onPress: () => {
-                        downloadedPages.forEach((page) => markMissing(page));
-                    },
+                    onPress: () => downloadedPages.forEach((page) => markMissing(page)),
                 },
             ]
         );
     }
 
     const s = StyleSheet.create({
-        container: {
-            flex: 1,
-            backgroundColor: palette.background,
-        },
-        scroll: {
-            padding: spacing.md,
-        },
+        container: { flex: 1, backgroundColor: palette.background },
+        scroll: { padding: spacing.md },
         card: {
             backgroundColor: palette.surface,
             borderRadius: 12,
@@ -83,29 +74,14 @@ export default function SettingsScreen() {
             letterSpacing: 0.8,
             marginBottom: spacing.sm,
         },
-        label: {
-            fontSize: 16,
-            color: palette.text,
-            marginBottom: spacing.sm,
-        },
         row: {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
         },
-        rowLabel: {
-            fontSize: 16,
-            color: palette.text,
-            flex: 1,
-        },
-        rowHint: {
-            fontSize: 13,
-            color: palette.textSecondary,
-            marginTop: 2,
-        },
-        rowLabelBlock: {
-            flex: 1,
-        },
+        rowLabelBlock: { flex: 1 },
+        rowLabel: { fontSize: 16, color: palette.text },
+        rowHint: { fontSize: 13, color: palette.textSecondary, marginTop: 2 },
         buttonGroup: {
             flexDirection: 'row',
             flexWrap: 'wrap',
@@ -124,86 +100,37 @@ export default function SettingsScreen() {
             borderColor: palette.primary,
             backgroundColor: palette.primary,
         },
-        optionBtnText: {
-            fontSize: 14,
-            color: palette.text,
-        },
-        optionBtnTextActive: {
-            color: '#FFFFFF',
-            fontWeight: '600',
-        },
-        fontSizeRow: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: spacing.md,
-            marginTop: spacing.xs,
-        },
-        fontSizeBtn: {
-            width: 40,
-            height: 40,
-            borderRadius: 20,
+        optionBtnText: { fontSize: 14, color: palette.text },
+        optionBtnTextActive: { color: '#fff', fontWeight: '600' },
+        storageInfo: { fontSize: 15, color: palette.text, marginBottom: spacing.xs },
+        manageBtn: {
+            marginTop: spacing.sm,
+            paddingVertical: spacing.sm,
+            paddingHorizontal: spacing.md,
+            borderRadius: 8,
             borderWidth: 1,
-            borderColor: palette.border,
-            backgroundColor: palette.background,
+            borderColor: palette.primary,
             alignItems: 'center',
-            justifyContent: 'center',
         },
-        fontSizeBtnDisabled: {
-            opacity: 0.4,
+        manageBtnText: { color: palette.primary, fontSize: 15, fontWeight: '600' },
+        clearBtn: {
+            marginTop: spacing.sm,
+            paddingVertical: spacing.sm,
+            paddingHorizontal: spacing.md,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: '#D32F2F',
+            alignItems: 'center',
         },
-        fontSizeBtnText: {
-            fontSize: 20,
-            color: palette.text,
-            lineHeight: 24,
-        },
-        fontSizeValue: {
-            fontSize: 16,
-            color: palette.text,
-            minWidth: 52,
+        clearBtnText: { color: '#D32F2F', fontSize: 15, fontWeight: '600' },
+        versionText: {
+            fontSize: 14,
+            color: palette.textSecondary,
             textAlign: 'center',
+            marginTop: spacing.sm,
+            marginBottom: spacing.lg,
         },
-        divider: {
-            storageInfo: {
-                fontSize: 15,
-                color: palette.text,
-                marginBottom: spacing.xs,
-            },
-            manageBtn: {
-                marginTop: spacing.sm,
-                paddingVertical: spacing.sm,
-                paddingHorizontal: spacing.md,
-                borderRadius: 8,
-                borderWidth: 1,
-                borderColor: palette.primary,
-                alignItems: 'center',
-            },
-            manageBtnText: {
-                color: palette.primary,
-                fontSize: 15,
-                fontWeight: '600',
-            },
-            clearBtn: {
-                marginTop: spacing.sm,
-                paddingVertical: spacing.sm,
-                paddingHorizontal: spacing.md,
-                borderRadius: 8,
-                borderWidth: 1,
-                borderColor: '#D32F2F',
-                alignItems: 'center',
-            },
-            clearBtnText: {
-                color: '#D32F2F',
-                fontSize: 15,
-                fontWeight: '600',
-            },
-            versionText: {
-                fontSize: 14,
-                color: palette.textSecondary,
-                textAlign: 'center',
-                marginTop: spacing.sm,
-                marginBottom: spacing.lg,
-            },
-        });
+    });
 
     return (
         <View style={s.container}>
@@ -224,7 +151,7 @@ export default function SettingsScreen() {
                                     accessibilityState={{ selected: active }}
                                 >
                                     <Text style={[s.optionBtnText, active && s.optionBtnTextActive]}>
-                                        {t(THEME_LABEL_KEYS[theme], locale)}
+                                        {t(THEME_LABELS[theme], locale)}
                                     </Text>
                                 </Pressable>
                             );
@@ -232,11 +159,9 @@ export default function SettingsScreen() {
                     </View>
                 </View>
 
-                {/* Reading Options */}
+                {/* Reading */}
                 <View style={s.card}>
-                    <Text style={s.sectionTitle}>Reading</Text>
-
-                    {/* Auto-Advance */}
+                    <Text style={s.sectionTitle}>{t('settings_auto_advance', locale)}</Text>
                     <View style={s.row}>
                         <View style={s.rowLabelBlock}>
                             <Text style={s.rowLabel}>{t('settings_auto_advance', locale)}</Text>
@@ -246,7 +171,7 @@ export default function SettingsScreen() {
                             value={preferences.autoAdvance}
                             onValueChange={setAutoAdvance}
                             trackColor={{ true: palette.primary }}
-                            thumbColor="#FFFFFF"
+                            thumbColor="#fff"
                         />
                     </View>
                 </View>
@@ -289,7 +214,7 @@ export default function SettingsScreen() {
                                     accessibilityState={{ selected: active }}
                                 >
                                     <Text style={[s.optionBtnText, active && s.optionBtnTextActive]}>
-                                        {t(LANG_LABEL_KEYS[lang], locale)}
+                                        {t(LANG_LABELS[lang], locale)}
                                     </Text>
                                 </Pressable>
                             );
@@ -308,7 +233,7 @@ export default function SettingsScreen() {
                             value={preferences.wifiOnlyDownload}
                             onValueChange={setWifiOnlyDownload}
                             trackColor={{ true: palette.primary }}
-                            thumbColor="#FFFFFF"
+                            thumbColor="#fff"
                         />
                     </View>
                 </View>
@@ -317,28 +242,19 @@ export default function SettingsScreen() {
                 <View style={s.card}>
                     <Text style={s.sectionTitle}>{t('settings_storage', locale)}</Text>
                     <Text style={s.storageInfo}>
-                        {t('settings_storage_used', locale).replace('{{mb}}', String(estimatedMB))}
+                        {t('settings_storage_used', locale).replace('{{mb}}', String(pageCount))}
                     </Text>
                     <Text style={s.storageInfo}>
                         {t('settings_storage_pages', locale).replace('{{count}}', String(pageCount))}
                     </Text>
-                    <Pressable
-                        style={s.manageBtn}
-                        onPress={() => router.push('/downloads')}
-                        accessibilityRole="button"
-                    >
+                    <Pressable style={s.manageBtn} onPress={() => router.push('/downloads')} accessibilityRole="button">
                         <Text style={s.manageBtnText}>{t('downloads_title', locale)}</Text>
                     </Pressable>
-                    <Pressable
-                        style={s.clearBtn}
-                        onPress={handleClearDownloads}
-                        accessibilityRole="button"
-                    >
+                    <Pressable style={s.clearBtn} onPress={handleClearDownloads} accessibilityRole="button">
                         <Text style={s.clearBtnText}>{t('settings_clear_downloads', locale)}</Text>
                     </Pressable>
                 </View>
 
-                {/* Version */}
                 <Text style={s.versionText}>
                     {t('settings_version', locale).replace('{{version}}', appVersion)}
                 </Text>
