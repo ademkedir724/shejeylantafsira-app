@@ -3,18 +3,19 @@ import { BookmarkModal } from '@/components/BookmarkModal';
 import { DownloadButton } from '@/components/DownloadButton';
 import { MushafImage } from '@/components/MushafImage';
 import { OfflineBanner } from '@/components/OfflineBanner';
-import { PageHeader } from '@/components/PageHeader';
 import { FULL_SCREEN_CONTROLS_TIMEOUT_MS, LAST_READ_SAVE_DEBOUNCE_MS } from '@/constants/config';
 import { t } from '@/constants/i18n/index';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useTheme } from '@/hooks/useTheme';
 import { useStore } from '@/store/index';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function PageScreen() {
     const { pageNumber: pageParam } = useLocalSearchParams<{ pageNumber: string }>();
@@ -105,42 +106,6 @@ export default function PageScreen() {
     const previousLabel = t('page_previous', locale);
     const nextLabel = t('page_next', locale);
 
-    const styles = StyleSheet.create({
-        container: {
-            flex: 1,
-            backgroundColor: palette.background,
-        },
-        pageContent: {
-            flex: 1,
-        },
-        navRow: {
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            paddingHorizontal: spacing.md,
-            paddingVertical: spacing.sm,
-            borderTopWidth: StyleSheet.hairlineWidth,
-            borderTopColor: palette.border,
-            backgroundColor: palette.surface,
-        },
-        navButton: {
-            paddingHorizontal: spacing.md,
-            paddingVertical: spacing.sm,
-            borderRadius: 8,
-            backgroundColor: palette.primary,
-        },
-        navButtonDisabled: {
-            backgroundColor: palette.border,
-        },
-        navButtonText: {
-            fontSize: 14,
-            fontWeight: '600',
-            color: '#FFFFFF',
-        },
-        navButtonTextDisabled: {
-            color: palette.textSecondary,
-        },
-    });
-
     const isPrevDisabled = pageNumber <= 1 || isPageLocked;
     const isNextDisabled = pageNumber >= 604 || isPageLocked;
     const showChrome = !isFullScreen || showControls;
@@ -155,6 +120,11 @@ export default function PageScreen() {
     const navigatePrev = useCallback(() => {
         router.push(`/page/${pageNumber - 1}`);
     }, [router, pageNumber]);
+
+    // Back button → always go to page list
+    const handleBack = useCallback(() => {
+        router.push('/page-browser');
+    }, [router]);
 
     const panGesture = Gesture.Pan()
         .activeOffsetX([-20, 20])
@@ -172,80 +142,217 @@ export default function PageScreen() {
         transform: [{ translateX: translateX.value }],
     }));
 
+    const styles = StyleSheet.create({
+        safeArea: {
+            flex: 1,
+            backgroundColor: palette.headerBg,
+        },
+        container: {
+            flex: 1,
+            backgroundColor: palette.background,
+        },
+        header: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: spacing.md,
+            paddingVertical: spacing.sm,
+            backgroundColor: palette.headerBg,
+            borderBottomWidth: StyleSheet.hairlineWidth,
+            borderBottomColor: palette.border,
+        },
+        headerLeft: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: spacing.xs,
+        },
+        headerTitle: {
+            fontSize: 16,
+            fontWeight: '600',
+            color: palette.text,
+        },
+        headerActions: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: spacing.xs,
+        },
+        iconButton: {
+            padding: spacing.sm,
+            borderRadius: 8,
+        },
+        pageContent: {
+            flex: 1,
+        },
+        navRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingHorizontal: spacing.md,
+            paddingVertical: spacing.sm,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: palette.border,
+            backgroundColor: palette.surface,
+        },
+        navButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: spacing.xs,
+            paddingHorizontal: spacing.md,
+            paddingVertical: spacing.sm,
+            borderRadius: 8,
+            backgroundColor: palette.primary,
+            minWidth: 90,
+            justifyContent: 'center',
+        },
+        navButtonDisabled: {
+            backgroundColor: palette.border,
+        },
+        navButtonText: {
+            fontSize: 14,
+            fontWeight: '600',
+            color: '#FFFFFF',
+        },
+        navButtonTextDisabled: {
+            color: palette.textSecondary,
+        },
+    });
+
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
             <StatusBar hidden={isFullScreen} />
 
-            {showChrome && (
-                <PageHeader
+            <View style={styles.container}>
+                {/* Header */}
+                {showChrome && (
+                    <View style={styles.header}>
+                        <View style={styles.headerLeft}>
+                            <Pressable
+                                style={styles.iconButton}
+                                onPress={handleBack}
+                                accessibilityRole="button"
+                                accessibilityLabel="Back to page list"
+                                hitSlop={8}
+                            >
+                                <Ionicons name="arrow-back" size={22} color={palette.text} />
+                            </Pressable>
+                            <Text style={styles.headerTitle}>Page {pageNumber}</Text>
+                        </View>
+
+                        <View style={styles.headerActions}>
+                            <Pressable
+                                style={styles.iconButton}
+                                onPress={togglePageLock}
+                                accessibilityRole="button"
+                                accessibilityLabel={isPageLocked ? 'Unlock page' : 'Lock page'}
+                                hitSlop={8}
+                            >
+                                <Ionicons
+                                    name={isPageLocked ? 'lock-closed' : 'lock-open'}
+                                    size={22}
+                                    color={isPageLocked ? palette.primary : palette.text}
+                                />
+                            </Pressable>
+
+                            <Pressable
+                                style={styles.iconButton}
+                                onPress={() => setShowBookmarkModal(true)}
+                                accessibilityRole="button"
+                                accessibilityLabel={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
+                                hitSlop={8}
+                            >
+                                <Ionicons
+                                    name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
+                                    size={22}
+                                    color={isBookmarked ? palette.primary : palette.text}
+                                />
+                            </Pressable>
+
+                            <Pressable
+                                style={styles.iconButton}
+                                onPress={toggleFullScreen}
+                                accessibilityRole="button"
+                                accessibilityLabel={isFullScreen ? 'Exit full screen' : 'Enter full screen'}
+                                hitSlop={8}
+                            >
+                                <Ionicons
+                                    name={isFullScreen ? 'contract' : 'expand'}
+                                    size={22}
+                                    color={palette.text}
+                                />
+                            </Pressable>
+                        </View>
+                    </View>
+                )}
+
+                {showChrome && <OfflineBanner pageNumber={pageNumber} />}
+
+                <BookmarkModal
+                    visible={showBookmarkModal}
                     pageNumber={pageNumber}
-                    isFullScreen={isFullScreen}
-                    isPageLocked={isPageLocked}
                     isBookmarked={isBookmarked}
-                    onToggleFullScreen={toggleFullScreen}
-                    onTogglePageLock={togglePageLock}
-                    onBookmark={() => setShowBookmarkModal(true)}
+                    onClose={() => setShowBookmarkModal(false)}
                 />
-            )}
 
-            {showChrome && <OfflineBanner pageNumber={pageNumber} />}
+                {/* Page content — image only */}
+                <GestureDetector gesture={panGesture}>
+                    <Animated.View style={[styles.pageContent, animatedStyle]}>
+                        <Pressable style={styles.pageContent} onPress={handlePageContentPress}>
+                            <MushafImage pageNumber={pageNumber} />
+                        </Pressable>
+                    </Animated.View>
+                </GestureDetector>
 
-            <BookmarkModal
-                visible={showBookmarkModal}
-                pageNumber={pageNumber}
-                isBookmarked={isBookmarked}
-                onClose={() => setShowBookmarkModal(false)}
-            />
+                {showChrome && (
+                    <AudioPlayer
+                        pageNumber={pageNumber}
+                        onNavigateNext={() => {
+                            if (pageNumber < 604) router.push(`/page/${pageNumber + 1}`);
+                        }}
+                    />
+                )}
 
-            {/* Page content — image only */}
-            <GestureDetector gesture={panGesture}>
-                <Animated.View style={[styles.pageContent, animatedStyle]}>
-                    <Pressable style={styles.pageContent} onPress={handlePageContentPress}>
-                        <MushafImage pageNumber={pageNumber} />
-                    </Pressable>
-                </Animated.View>
-            </GestureDetector>
+                {showChrome && (
+                    <View style={styles.navRow}>
+                        <Pressable
+                            style={[styles.navButton, isPrevDisabled && styles.navButtonDisabled]}
+                            disabled={isPrevDisabled}
+                            onPress={() => router.push(`/page/${pageNumber - 1}`)}
+                            accessibilityRole="button"
+                            accessibilityLabel={previousLabel}
+                            accessibilityState={{ disabled: isPrevDisabled }}
+                        >
+                            <Ionicons
+                                name="chevron-back"
+                                size={16}
+                                color={isPrevDisabled ? palette.textSecondary : '#FFFFFF'}
+                            />
+                            <Text style={[styles.navButtonText, isPrevDisabled && styles.navButtonTextDisabled]}>
+                                {previousLabel}
+                            </Text>
+                        </Pressable>
 
-            {showChrome && (
-                <AudioPlayer
-                    pageNumber={pageNumber}
-                    onNavigateNext={() => {
-                        if (pageNumber < 604) router.push(`/page/${pageNumber + 1}`);
-                    }}
-                />
-            )}
+                        <DownloadButton pageNumber={pageNumber} />
 
-            {showChrome && (
-                <View style={styles.navRow}>
-                    <Pressable
-                        style={[styles.navButton, isPrevDisabled && styles.navButtonDisabled]}
-                        disabled={isPrevDisabled}
-                        onPress={() => router.push(`/page/${pageNumber - 1}`)}
-                        accessibilityRole="button"
-                        accessibilityLabel={previousLabel}
-                        accessibilityState={{ disabled: isPrevDisabled }}
-                    >
-                        <Text style={[styles.navButtonText, isPrevDisabled && styles.navButtonTextDisabled]}>
-                            {previousLabel}
-                        </Text>
-                    </Pressable>
-
-                    <DownloadButton pageNumber={pageNumber} />
-
-                    <Pressable
-                        style={[styles.navButton, isNextDisabled && styles.navButtonDisabled]}
-                        disabled={isNextDisabled}
-                        onPress={() => router.push(`/page/${pageNumber + 1}`)}
-                        accessibilityRole="button"
-                        accessibilityLabel={nextLabel}
-                        accessibilityState={{ disabled: isNextDisabled }}
-                    >
-                        <Text style={[styles.navButtonText, isNextDisabled && styles.navButtonTextDisabled]}>
-                            {nextLabel}
-                        </Text>
-                    </Pressable>
-                </View>
-            )}
-        </View>
+                        <Pressable
+                            style={[styles.navButton, isNextDisabled && styles.navButtonDisabled]}
+                            disabled={isNextDisabled}
+                            onPress={() => router.push(`/page/${pageNumber + 1}`)}
+                            accessibilityRole="button"
+                            accessibilityLabel={nextLabel}
+                            accessibilityState={{ disabled: isNextDisabled }}
+                        >
+                            <Text style={[styles.navButtonText, isNextDisabled && styles.navButtonTextDisabled]}>
+                                {nextLabel}
+                            </Text>
+                            <Ionicons
+                                name="chevron-forward"
+                                size={16}
+                                color={isNextDisabled ? palette.textSecondary : '#FFFFFF'}
+                            />
+                        </Pressable>
+                    </View>
+                )}
+            </View>
+        </SafeAreaView>
     );
 }

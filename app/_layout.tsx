@@ -31,9 +31,15 @@ export default function RootLayout() {
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="page/[pageNumber]" options={{ headerShown: false }} />
-          <Stack.Screen name="bookmarks" options={{ title: 'Bookmarks' }} />
-          <Stack.Screen name="downloads" options={{ title: 'Downloads' }} />
+          <Stack.Screen
+            name="page/[pageNumber]"
+            options={{
+              headerShown: false,
+              gestureEnabled: false,
+            }}
+          />
+          <Stack.Screen name="bookmarks" options={{ title: 'Bookmarks', headerBackTitle: 'Back' }} />
+          <Stack.Screen name="downloads" options={{ title: 'Downloads', headerBackTitle: 'Back' }} />
           <Stack.Screen name="page-browser" options={{ presentation: 'modal', title: 'Go to Page' }} />
           <Stack.Screen name="_debug" options={{ title: 'Debug' }} />
         </Stack>
